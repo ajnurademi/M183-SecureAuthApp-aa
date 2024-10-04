@@ -1,43 +1,59 @@
-/*  Account
- *
- *  Copyright (C) 2023  Robert Schoech
- *  
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package ost;
+
+import org.mindrot.jbcrypt.BCrypt;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Account extends DatabaseAPI {
 
-    public void initAccount() {
-         System.out.println("initAccount not implemented");
+    private static final String USER_TABLE = "User";
+    private static final String SECURITY_TABLE = "Security";
+
+    // Added signup_date to User table
+    private static final String USER_FIELDS = "id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, password_hash TEXT, signup_date TEXT";
+    private static final String SECURITY_FIELDS = "user_id INTEGER, salt TEXT, pepper TEXT, FOREIGN KEY(user_id) REFERENCES User(id)";
+
+    private String pepper; 
+
+    public Account() {
+        
+        EnvLoader envLoader = new EnvLoader(".env");
+        pepper = envLoader.get("PEPPER"); 
+
+        
+        createTable(USER_TABLE, USER_FIELDS);
+        createTable(SECURITY_TABLE, SECURITY_FIELDS);
     }
 
-    public void addAccount(String name, String password) {
-         System.out.println("addAccount not implemented");
-    }
-   
+    public void addAccount(String email, String password) {
+        String salt = BCrypt.gensalt();
+        String passwordWithPepper = password + pepper; 
+        String hashedPassword = BCrypt.hashpw(passwordWithPepper, salt);
 
-    public boolean verifyAccount(String userName) {
-        System.out.println("verifyAccount not implemented");
+        String signupDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        insert(USER_TABLE, "email, password_hash, signup_date", "'" + email + "', '" + hashedPassword + "', '" + signupDate + "'");
+
+        String userId = getValue(USER_TABLE, "email", email, "id");
+
+        insert(SECURITY_TABLE, "user_id, salt, pepper", userId + ", '" + salt + "', '" + pepper + "'"); 
+    }
+
+    public boolean verifyAccount(String email) {
+        return isKeyAvailable(USER_TABLE, "email", email);
+    }
+
+    public boolean verifyPassword(String email, String password) {
+
+        String userId = getValue(USER_TABLE, "email", email, "id");
+        String salt = getValue(SECURITY_TABLE, "user_id", userId, "salt");
+
+        String hashedPassword = getValue(USER_TABLE, "email", email, "password_hash");
+
+        if (hashedPassword != null && salt != null) {
+            String passwordWithPepper = password + pepper; 
+            return BCrypt.checkpw(passwordWithPepper, hashedPassword);
+        }
         return false;
     }
-
-    public boolean verifyPassword(String userName, String password) {
-        System.out.println("verifyPassword not implemented");
-        return false;
-    }
-
 }
-
