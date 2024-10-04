@@ -2,4 +2,4 @@
 config.txt
 
 # Ignoriere alle .env-Dateien, falls du sie jemals hinzufügen möchtest
-.env
+#.env
