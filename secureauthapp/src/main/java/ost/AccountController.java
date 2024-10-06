@@ -8,9 +8,14 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class AccountController {
 
     private Account account;
+    private int loginAttempts = 0; 
+    private Timer lockoutTimer; 
 
     @FXML
     private Button btLogin;
@@ -48,54 +53,79 @@ public class AccountController {
     @FXML
     private void initialize() throws Exception {
         account = new Account();
-    }
+    }   
 
     @FXML
     private void onSignUp(ActionEvent event) throws Exception {
         String email = tfSignUpEmail.getText();
+        
+        // E-Mail validieren
+        if (!account.isValidEmail(email)) {
+            lbSignUpMessage.setText("Bitte geben Sie eine gültige E-Mail-Adresse ein. Bsp: benutzername@domain.com");
+            return;
+        }
+
         if (email.isEmpty()) {
-            lbSignUpMessage.setText("Bitte geben Sie eine E-Mail-Adresse ein.");
+            lbSignUpMessage.setText("Bitte geben Sie eine E-Mail ein");
             return;
         }
 
         String password = pfSignUpPassword.getText().trim();
         if (password.equals("")) {
-            lbSignUpMessage.setText("Bitte geben Sie ein Passwort ein.");
+            lbSignUpMessage.setText("Bitte geben Sie ein Passwort ein");
             return;
         }
 
         if (!password.equals(pfSignUpConfirmPassword.getText())) {
-            lbSignUpMessage.setText("Die Passwörter stimmen nicht überein.");
+            lbSignUpMessage.setText("Passwörter stimmen nicht überein");
             return;
         }
 
         if (account.verifyAccount(email)) {
-            lbSignUpMessage.setText("Ein Konto mit dieser E-Mail existiert bereits.");
+            lbSignUpMessage.setText("Ein Konto mit dieser E-Mail-Adresse existiert bereits");
             return;
         }
 
-        try {
-            account.addAccount(email, password);
-            resetLogin();
-            resetSignup();
-            tabPane.getSelectionModel().select(1);
-        } catch (Exception e) {
-            lbSignUpMessage.setText(e.getMessage());  
-        }
+        account.addAccount(email, password);
+        resetLogin();
+        resetSignup();
+        tabPane.getSelectionModel().select(1); 
     }
+
 
     @FXML
     private void onLogin(ActionEvent event) {
         String email = tfUsername.getText();
         String password = pfLoginPassword.getText();
 
+        if (loginAttempts >= 3) {
+            lbLoginMessage.setText("Account is locked. Try again later.");
+            return;
+        }
+
         if (account.verifyPassword(email, password)) {
+            resetLogin();
+            resetSignup();
+            loginAttempts = 0; 
             tabPane.getTabs().get(0).setDisable(true);
             tabPane.getTabs().get(1).setDisable(true);
             tabPane.getTabs().get(2).setDisable(false);
-            tabPane.getSelectionModel().select(2);
+            tabPane.getSelectionModel().select(2); 
         } else {
-            lbLoginMessage.setText("Ungültige E-Mail oder Passwort.");
+            loginAttempts++;
+            lbLoginMessage.setText("Invalid email or password. Attempt: " + loginAttempts);
+
+            if (loginAttempts >= 3) {
+                lbLoginMessage.setText("Too many failed attempts. Account locked for 20 seconds.");
+                lockoutTimer = new Timer();
+                lockoutTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        loginAttempts = 0; 
+                        lbLoginMessage.setText("You can try logging in again.");
+                    }
+                }, 20000); 
+            }
         }
     }
 
@@ -105,19 +135,19 @@ public class AccountController {
         tabPane.getTabs().get(1).setDisable(false);
         tabPane.getTabs().get(2).setDisable(true);
         resetLogin();
-        tabPane.getSelectionModel().select(1);
+        tabPane.getSelectionModel().select(1); 
     }
 
     private void resetLogin() {
         tfUsername.setText("");
         pfLoginPassword.setText("");
-        lbLoginMessage.setText("Melden Sie sich mit Ihrem Konto an.");
-    }
+        lbLoginMessage.setText("Login with your account");
+    } 
 
     private void resetSignup() {
         tfSignUpEmail.setText("");
         pfSignUpPassword.setText("");
         pfSignUpConfirmPassword.setText("");
-        lbSignUpMessage.setText("Konto erstellen");
+        lbSignUpMessage.setText("Create Account");
     }
 }
