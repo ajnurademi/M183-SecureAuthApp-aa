@@ -24,9 +24,13 @@ public class Account extends DatabaseAPI {
 
     public void addAccount(String email, String password) throws Exception {
         StringBuilder errorMessage = new StringBuilder("Please ensure your password meets the following requirements:\n");
-
+    
         boolean isStrong = true;
-
+    
+        if (!isValidEmail(email)) {
+            throw new Exception("Bitte geben Sie eine gültige E-Mail-Adresse ein (z.B. example@domain.com).");
+        }
+    
         if (password.length() < 8) {
             errorMessage.append("- At least 8 characters long.\n");
             isStrong = false;
@@ -47,23 +51,29 @@ public class Account extends DatabaseAPI {
             errorMessage.append("- At least one special character (e.g., §, $, %, &, !).\n");
             isStrong = false;
         }
-
+    
         if (!isStrong) {
             throw new Exception(errorMessage.toString());
         }
-
+    
         String salt = BCrypt.gensalt();
         String passwordWithPepper = password + pepper;
         String hashedPassword = BCrypt.hashpw(passwordWithPepper, salt);
-
+    
         String signupDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
+    
         insert(USER_TABLE, "email, password_hash, signup_date", "'" + email + "', '" + hashedPassword + "', '" + signupDate + "'");
-
+    
         String userId = getValue(USER_TABLE, "email", email, "id");
-
+    
         insert(SECURITY_TABLE, "user_id, salt, pepper", userId + ", '" + salt + "', '" + pepper + "'");
     }
+    
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+        return email.matches(emailRegex);
+    }
+    
 
     public boolean verifyPassword(String email, String password) {
         String userId = getValue(USER_TABLE, "email", email, "id");

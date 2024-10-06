@@ -11,6 +11,9 @@ import javafx.scene.control.TextField;
 public class AccountController {
 
     private Account account;
+    private int loginAttempts = 0;
+    private long lockTime = 0;
+    private static final long LOCK_DURATION = 20000; 
 
     @FXML
     private Button btLogin;
@@ -86,17 +89,36 @@ public class AccountController {
 
     @FXML
     private void onLogin(ActionEvent event) {
+        if (isLocked()) {
+            long timeRemaining = (lockTime + LOCK_DURATION) - System.currentTimeMillis();
+            lbLoginMessage.setText("Ihr Konto ist gesperrt. Bitte warten Sie " + (timeRemaining / 1000) + " Sekunden.");
+            return;
+        }
+
         String email = tfUsername.getText();
         String password = pfLoginPassword.getText();
 
         if (account.verifyPassword(email, password)) {
+            loginAttempts = 0; 
             tabPane.getTabs().get(0).setDisable(true);
             tabPane.getTabs().get(1).setDisable(true);
             tabPane.getTabs().get(2).setDisable(false);
             tabPane.getSelectionModel().select(2);
         } else {
-            lbLoginMessage.setText("Ungültige E-Mail oder Passwort.");
+            loginAttempts++;
+            int remainingAttempts = 3 - loginAttempts; 
+            
+            if (remainingAttempts > 0) {
+                lbLoginMessage.setText("Ungültige E-Mail oder Passwort. Sie haben noch " + remainingAttempts + " Versuch(e) übrig.");
+            } else {
+                lockTime = System.currentTimeMillis();
+                lbLoginMessage.setText("Zu viele fehlgeschlagene Anmeldeversuche. Bitte warten Sie 20 Sekunden.");
+            }
         }
+    }
+
+    private boolean isLocked() {
+        return loginAttempts >= 3 && (System.currentTimeMillis() < (lockTime + LOCK_DURATION));
     }
 
     @FXML

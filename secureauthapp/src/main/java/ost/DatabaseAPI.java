@@ -51,7 +51,6 @@ public class DatabaseAPI {
         try (Connection conn = DriverManager.getConnection(url)) {
             String sql = "SELECT " + resultField + " FROM " + tableName + " WHERE " + searchField + " = ?";
             
-            // Use PreparedStatement to prevent SQL injection
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, searchValue);
                 try (ResultSet rs = pstmt.executeQuery()) {  
@@ -65,7 +64,6 @@ public class DatabaseAPI {
         }
         return result;  
     }
-    
 
     public void update(String tableName, String updates, String condition) {
         try (Connection conn = DriverManager.getConnection(url)) {
