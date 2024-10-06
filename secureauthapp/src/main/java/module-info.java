@@ -3,7 +3,7 @@ module ost {
     requires javafx.fxml;
     requires org.apache.commons.codec;
     requires java.sql;
-    requires jbcrypt;  // Füge diese Zeile hinzu, um die BCrypt-Bibliothek zu verwenden
+    requires jbcrypt; 
 
     opens ost to javafx.fxml;
     exports ost;

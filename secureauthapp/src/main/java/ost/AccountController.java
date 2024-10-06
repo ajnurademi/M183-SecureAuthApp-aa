@@ -48,36 +48,40 @@ public class AccountController {
     @FXML
     private void initialize() throws Exception {
         account = new Account();
-    }   
+    }
 
     @FXML
     private void onSignUp(ActionEvent event) throws Exception {
         String email = tfSignUpEmail.getText();
         if (email.isEmpty()) {
-            lbSignUpMessage.setText("Please enter an email");
+            lbSignUpMessage.setText("Bitte geben Sie eine E-Mail-Adresse ein.");
             return;
         }
 
         String password = pfSignUpPassword.getText().trim();
         if (password.equals("")) {
-            lbSignUpMessage.setText("Please enter a password");
+            lbSignUpMessage.setText("Bitte geben Sie ein Passwort ein.");
             return;
         }
 
         if (!password.equals(pfSignUpConfirmPassword.getText())) {
-            lbSignUpMessage.setText("Passwords do not match");
+            lbSignUpMessage.setText("Die Passwörter stimmen nicht überein.");
             return;
         }
 
         if (account.verifyAccount(email)) {
-            lbSignUpMessage.setText("An account with this email already exists");
+            lbSignUpMessage.setText("Ein Konto mit dieser E-Mail existiert bereits.");
             return;
         }
 
-        account.addAccount(email, password);
-        resetLogin();
-        resetSignup();
-        tabPane.getSelectionModel().select(1); 
+        try {
+            account.addAccount(email, password);
+            resetLogin();
+            resetSignup();
+            tabPane.getSelectionModel().select(1);
+        } catch (Exception e) {
+            lbSignUpMessage.setText(e.getMessage());  // Zeige spezifische Fehler an
+        }
     }
 
     @FXML
@@ -89,10 +93,9 @@ public class AccountController {
             tabPane.getTabs().get(0).setDisable(true);
             tabPane.getTabs().get(1).setDisable(true);
             tabPane.getTabs().get(2).setDisable(false);
-            tabPane.getSelectionModel().select(2); 
+            tabPane.getSelectionModel().select(2);
         } else {
-            lbLoginMessage.setText("Invalid email or password");
-            tabPane.getTabs().get(0).setDisable(false);
+            lbLoginMessage.setText("Ungültige E-Mail oder Passwort, oder Konto gesperrt.");
         }
     }
 
@@ -102,19 +105,19 @@ public class AccountController {
         tabPane.getTabs().get(1).setDisable(false);
         tabPane.getTabs().get(2).setDisable(true);
         resetLogin();
-        tabPane.getSelectionModel().select(1); 
+        tabPane.getSelectionModel().select(1);
     }
 
     private void resetLogin() {
         tfUsername.setText("");
         pfLoginPassword.setText("");
-        lbLoginMessage.setText("Login with your account");
-    } 
+        lbLoginMessage.setText("Melden Sie sich mit Ihrem Konto an.");
+    }
 
     private void resetSignup() {
         tfSignUpEmail.setText("");
         pfSignUpPassword.setText("");
         pfSignUpConfirmPassword.setText("");
-        lbSignUpMessage.setText("Create Account");
+        lbSignUpMessage.setText("Konto erstellen");
     }
 }
