@@ -11,9 +11,9 @@ import javafx.scene.control.TextField;
 public class AccountController {
 
     private Account account;
-    private int loginAttempts = 3; // Anzahl der maximalen Versuche
-    private long lockTime = 20000; // Sperrzeit in Millisekunden
-    private long lastAttemptTime;
+    private int loginAttempts = 0;
+    private long lockTime = 0;
+    private static final long LOCK_DURATION = 20000; // 20 Sekunden in Millisekunden
 
     @FXML
     private Button btLogin;
@@ -83,17 +83,16 @@ public class AccountController {
             resetSignup();
             tabPane.getSelectionModel().select(1);
         } catch (Exception e) {
-            lbSignUpMessage.setText(e.getMessage());
+            lbSignUpMessage.setText(e.getMessage());  
         }
     }
 
     @FXML
     private void onLogin(ActionEvent event) {
-        long currentTime = System.currentTimeMillis();
-
-        // Überprüfen, ob die Sperrzeit abgelaufen ist
-        if (loginAttempts <= 0 && (currentTime - lastAttemptTime) < lockTime) {
-            lbLoginMessage.setText("Zu viele Fehlversuche. Bitte warten Sie 20 Sekunden.");
+        // Überprüfen, ob der Benutzer gesperrt ist
+        if (isLocked()) {
+            long timeRemaining = (lockTime + LOCK_DURATION) - System.currentTimeMillis();
+            lbLoginMessage.setText("Ihr Konto ist gesperrt. Bitte warten Sie " + (timeRemaining / 1000) + " Sekunden.");
             return;
         }
 
@@ -101,21 +100,29 @@ public class AccountController {
         String password = pfLoginPassword.getText();
 
         if (account.verifyPassword(email, password)) {
-            loginAttempts = 3; // Zurücksetzen der Versuche bei erfolgreichem Login
+            // Erfolgreiche Anmeldung
+            loginAttempts = 0; // Zurücksetzen der Versuche
             tabPane.getTabs().get(0).setDisable(true);
             tabPane.getTabs().get(1).setDisable(true);
             tabPane.getTabs().get(2).setDisable(false);
             tabPane.getSelectionModel().select(2);
-            lbLoginMessage.setText("Willkommen zurück!");
         } else {
-            loginAttempts--;
-            lastAttemptTime = System.currentTimeMillis(); // Speichere die Zeit des letzten Fehlversuchs
-            if (loginAttempts > 0) {
-                lbLoginMessage.setText("Ungültige E-Mail oder Passwort. Noch " + loginAttempts + " Versuch(e) übrig.");
+            // Fehlgeschlagene Anmeldung
+            loginAttempts++;
+            int remainingAttempts = 3 - loginAttempts; // Berechnung der verbleibenden Versuche
+            
+            if (remainingAttempts > 0) {
+                lbLoginMessage.setText("Ungültige E-Mail oder Passwort. Sie haben noch " + remainingAttempts + " Versuch(e) übrig.");
             } else {
-                lbLoginMessage.setText("Zu viele Fehlversuche. Bitte warten Sie 20 Sekunden.");
+                // Sperren des Benutzers
+                lockTime = System.currentTimeMillis();
+                lbLoginMessage.setText("Zu viele fehlgeschlagene Anmeldeversuche. Bitte warten Sie 20 Sekunden.");
             }
         }
+    }
+
+    private boolean isLocked() {
+        return loginAttempts >= 3 && (System.currentTimeMillis() < (lockTime + LOCK_DURATION));
     }
 
     @FXML
