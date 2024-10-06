@@ -80,7 +80,7 @@ public class AccountController {
             resetSignup();
             tabPane.getSelectionModel().select(1);
         } catch (Exception e) {
-            lbSignUpMessage.setText(e.getMessage());  // Zeige spezifische Fehler an
+            lbSignUpMessage.setText(e.getMessage());  
         }
     }
 
@@ -95,7 +95,7 @@ public class AccountController {
             tabPane.getTabs().get(2).setDisable(false);
             tabPane.getSelectionModel().select(2);
         } else {
-            lbLoginMessage.setText("Ungültige E-Mail oder Passwort, oder Konto gesperrt.");
+            lbLoginMessage.setText("Ungültige E-Mail oder Passwort.");
         }
     }
 

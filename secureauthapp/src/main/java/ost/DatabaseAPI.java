@@ -49,22 +49,21 @@ public class DatabaseAPI {
     public String getValue(String tableName, String searchField, String searchValue, String resultField) {
         String result = null;
         try (Connection conn = DriverManager.getConnection(url)) {
-            // Prepare the SQL query with the provided parameters
             String sql = "SELECT " + resultField + " FROM " + tableName + " WHERE " + searchField + " = ?";
             
             // Use PreparedStatement to prevent SQL injection
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, searchValue);
-                try (ResultSet rs = pstmt.executeQuery()) {  // Execute the query and obtain a ResultSet
-                    if (rs.next()) {  // Check if there's a result
-                        result = rs.getString(resultField);  // Get the result
+                try (ResultSet rs = pstmt.executeQuery()) {  
+                    if (rs.next()) {  
+                        result = rs.getString(resultField);  
                     }
                 }
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());  // Handle any SQL exceptions
+            System.out.println(e.getMessage());  
         }
-        return result;  // Return the result, null if no result found
+        return result;  
     }
     
 
