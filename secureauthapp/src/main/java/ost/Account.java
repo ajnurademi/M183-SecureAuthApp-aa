@@ -27,7 +27,6 @@ public class Account extends DatabaseAPI {
 
         boolean isStrong = true;
 
-        // E-Mail-Validierung
         if (!isValidEmail(email)) {
             throw new Exception("Bitte geben Sie eine gültige E-Mail-Adresse ein (z.B. example@domain.com).");
         }
@@ -93,7 +92,6 @@ public class Account extends DatabaseAPI {
         return userId != null;
     }
 
-    // E-Mail-Validierungsfunktion
     private boolean isValidEmail(String email) {
         String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
         return email.matches(emailRegex);
