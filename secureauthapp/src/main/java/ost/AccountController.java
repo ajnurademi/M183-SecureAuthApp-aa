@@ -57,23 +57,23 @@ public class AccountController {
     private void onSignUp(ActionEvent event) throws Exception {
         String email = tfSignUpEmail.getText();
         if (email.isEmpty()) {
-            lbSignUpMessage.setText("Bitte geben Sie eine E-Mail-Adresse ein.");
+            lbSignUpMessage.setText("Please enter an email address.");
             return;
         }
 
         String password = pfSignUpPassword.getText().trim();
         if (password.equals("")) {
-            lbSignUpMessage.setText("Bitte geben Sie ein Passwort ein.");
+            lbSignUpMessage.setText("Please enter a password.");
             return;
         }
 
         if (!password.equals(pfSignUpConfirmPassword.getText())) {
-            lbSignUpMessage.setText("Die Passwörter stimmen nicht überein.");
+            lbSignUpMessage.setText("The passwords do not match.");
             return;
         }
 
         if (account.verifyAccount(email)) {
-            lbSignUpMessage.setText("Ein Konto mit dieser E-Mail existiert bereits.");
+            lbSignUpMessage.setText("An account with this email already exists.");
             return;
         }
 
@@ -91,7 +91,7 @@ public class AccountController {
     private void onLogin(ActionEvent event) {
         if (isLocked()) {
             long timeRemaining = (lockTime + LOCK_DURATION) - System.currentTimeMillis();
-            lbLoginMessage.setText("Ihr Konto ist gesperrt. Bitte warten Sie " + (timeRemaining / 1000) + " Sekunden.");
+            lbLoginMessage.setText("Your account is locked. Please wait " + (timeRemaining / 1000) + " seconds.");
             return;
         }
 
@@ -109,10 +109,10 @@ public class AccountController {
             int remainingAttempts = 3 - loginAttempts;
             
             if (remainingAttempts > 0) {
-                lbLoginMessage.setText("Ungültige E-Mail oder Passwort. Sie haben noch " + remainingAttempts + " Versuch(e) übrig.");
+                lbLoginMessage.setText("Invalid email or password. You have " + remainingAttempts + " attempt(s) left.");
             } else {
                 lockTime = System.currentTimeMillis();
-                lbLoginMessage.setText("Zu viele fehlgeschlagene Anmeldeversuche. Bitte warten Sie 20 Sekunden.");
+                lbLoginMessage.setText("Too many failed login attempts. Please wait 20 seconds.");
             }
         }
     }
@@ -133,13 +133,13 @@ public class AccountController {
     private void resetLogin() {
         tfUsername.setText("");
         pfLoginPassword.setText("");
-        lbLoginMessage.setText("Melden Sie sich mit Ihrem Konto an.");
+        lbLoginMessage.setText("Please log in with your account.");
     }
 
     private void resetSignup() {
         tfSignUpEmail.setText("");
         pfSignUpPassword.setText("");
         pfSignUpConfirmPassword.setText("");
-        lbSignUpMessage.setText("Konto erstellen");
+        lbSignUpMessage.setText("Create an account");
     }
 }
