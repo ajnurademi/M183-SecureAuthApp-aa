@@ -7,10 +7,8 @@ import java.time.format.DateTimeFormatter;
 public class Account extends DatabaseAPI {
 
     private static final String USER_TABLE = "User";
-    private static final String SECURITY_TABLE = "Security";
-
+    
     private static final String USER_FIELDS = "id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, password_hash TEXT, signup_date TEXT";
-    private static final String SECURITY_FIELDS = "user_id INTEGER, salt TEXT, pepper TEXT, FOREIGN KEY(user_id) REFERENCES User(id)";
 
     private String pepper;
 
@@ -19,7 +17,6 @@ public class Account extends DatabaseAPI {
         pepper = envLoader.get("PEPPER");
 
         createTable(USER_TABLE, USER_FIELDS);
-        createTable(SECURITY_TABLE, SECURITY_FIELDS);
     }
 
     public void addAccount(String email, String password) throws Exception {
@@ -63,23 +60,12 @@ public class Account extends DatabaseAPI {
         String signupDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         insert(USER_TABLE, "email, password_hash, signup_date", "'" + email + "', '" + hashedPassword + "', '" + signupDate + "'");
-
-        String userId = getValue(USER_TABLE, "email", email, "id");
-
-        insert(SECURITY_TABLE, "user_id, salt, pepper", userId + ", '" + salt + "', '" + pepper + "'");
     }
 
     public boolean verifyPassword(String email, String password) {
-        String userId = getValue(USER_TABLE, "email", email, "id");
-
-        if (userId == null) {
-            return false;
-        }
-
-        String salt = getValue(SECURITY_TABLE, "user_id", userId, "salt");
         String hashedPassword = getValue(USER_TABLE, "email", email, "password_hash");
 
-        if (hashedPassword != null && salt != null) {
+        if (hashedPassword != null) {
             String passwordWithPepper = password + pepper;
             return BCrypt.checkpw(passwordWithPepper, hashedPassword);
         }
