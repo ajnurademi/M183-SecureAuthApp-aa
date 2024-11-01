@@ -20,7 +20,7 @@ public class Account extends DatabaseAPI {
     }
 
     public void addAccount(String email, String password) throws Exception {
-        StringBuilder errorMessage = new StringBuilder("Please ensure your password meets the following requirements:\n");
+        StringBuilder errorMessage = new StringBuilder("Bitte stellen Sie sicher, dass Ihr Passwort die folgenden Anforderungen erfüllt:\n");
 
         boolean isStrong = true;
 
@@ -29,23 +29,23 @@ public class Account extends DatabaseAPI {
         }
 
         if (password.length() < 8) {
-            errorMessage.append("- At least 8 characters long.\n");
+            errorMessage.append("- Mindestens 8 Zeichen lang.\n");
             isStrong = false;
         }
         if (!password.matches(".*[A-Z].*")) {
-            errorMessage.append("- At least one uppercase letter.\n");
+            errorMessage.append("- Mindestens ein Großbuchstabe.\n");
             isStrong = false;
         }
         if (!password.matches(".*[a-z].*")) {
-            errorMessage.append("- At least one lowercase letter.\n");
+            errorMessage.append("- Mindestens ein Kleinbuchstabe.\n");
             isStrong = false;
         }
         if (!password.matches(".*[0-9].*")) {
-            errorMessage.append("- At least one digit.\n");
+            errorMessage.append("- Mindestens eine Ziffer.\n");
             isStrong = false;
         }
         if (!password.matches(".*[§$%&!?].*")) {
-            errorMessage.append("- At least one special character (e.g., §, $, %, &, !).\n");
+            errorMessage.append("- Mindestens ein Sonderzeichen (z.B. §, $, %, &, !).\n");
             isStrong = false;
         }
 
@@ -53,9 +53,9 @@ public class Account extends DatabaseAPI {
             throw new Exception(errorMessage.toString());
         }
 
-        String salt = BCrypt.gensalt();
+        // Passwort mit Pepper kombinieren und hashen
         String passwordWithPepper = password + pepper;
-        String hashedPassword = BCrypt.hashpw(passwordWithPepper, salt);
+        String hashedPassword = BCrypt.hashpw(passwordWithPepper, BCrypt.gensalt());
 
         String signupDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
